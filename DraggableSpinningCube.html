@@ -1,0 +1,417 @@
+<html>
+	
+	<head>
+		 <title>Animation Start</title>
+	<script type="text/javascript" src="glMatrix.js"></script>
+	
+	<style type="text/css">
+	    
+	    #webGL
+	    {
+	        border:solid 3px #090000;
+	        position:absolute;
+	        left:100px;
+	        top:100px;
+	    }
+	</style>
+	
+<script id="vertexShader" type="GL_VERTEXSHADER">
+		attribute vec3 vertexPosition;
+		attribute vec4 vertexColor;
+		
+		uniform mat4 MVMatrix;
+		uniform mat4 PMatrix;
+		
+		varying vec4 vColor;
+		
+		void main(void) {		
+			gl_Position= PMatrix * MVMatrix * vec4(vertexPosition, 1.0);
+			vColor=vertexColor;		
+		}
+		
+		
+	</script>
+	
+	
+	
+	 
+	
+	
+	
+	
+	
+	
+	
+	<script id="fragmentShader" type="GL_FRAGMENTSHADER">
+		precision mediump float;
+		
+		varying vec4 vColor;
+		
+		void main(void){
+			
+			
+			
+			gl_FragColor=vColor;
+			
+		}
+		
+		
+		
+	</script>
+	
+	
+	
+	
+		<script>
+		var startTime=0;
+		var lastTime=0;
+			var CubeRot=59;
+		var mvMatrix;
+		
+		var pMatrix;
+		var vertexScript;
+var ShaderVertex;
+var fragmentScript;
+var ShaderFragment;
+var shaderProgram;
+var UniformMVMatrix;
+var UniformPMatrix;
+ var attribute_vertexPosition;
+
+var attribute_vertexColor;
+
+var cubeVertexPositionBuffer;
+
+var cubeVertexColorBuffer;
+var cubeVertexIndexBuffer;
+		
+	 var mvMatrixStack = [];	
+		var timeNow=0;
+		var lastTime=0;
+		var timeNow=0;
+		var elapsed=0;
+		
+		
+		function RunThis() {
+			
+			
+		
+			
+    
+			 
+			canvas=document.getElementById("WebGL");
+			
+			    document.addEventListener("dragover",HANDLEDragOver,false);
+            document.addEventListener("drop",HANDLEDrop,false);
+            canvas.addEventListener("dragstart",handleDragStart,false);
+            canvas.addEventListener("dragend",handleDragEnd,false);
+			
+			gl=canvas.getContext("experimental-webgl");
+			
+			
+			 
+			
+			 vertexScript=document.getElementById("vertexShader");
+			 ShaderVertex=gl.createShader(gl.VERTEX_SHADER);
+			gl.shaderSource(ShaderVertex,vertexScript.textContent);
+			gl.compileShader(ShaderVertex);
+			
+			 fragmentScript=document.getElementById("fragmentShader");
+			 ShaderFragment=gl.createShader(gl.FRAGMENT_SHADER);
+			gl.shaderSource(ShaderFragment,fragmentScript.textContent);
+			gl.compileShader(ShaderFragment);
+			
+			 shaderProgram=gl.createProgram();
+			gl.attachShader(shaderProgram,ShaderVertex);
+			gl.attachShader(shaderProgram,ShaderFragment);
+			gl.linkProgram(shaderProgram);
+			gl.useProgram(shaderProgram);
+			
+			//----------------------------
+			
+		 
+			
+	
+     	
+			 mvMatrix=mat4.create();		
+			mat4.identity(mvMatrix);	
+			mat4.translate(mvMatrix,[0.0,0.0,-8.0]);
+			mat4.rotate(mvMatrix,CubeRot*Math.PI/180,[1,1,1]);
+			 UniformMVMatrix=gl.getUniformLocation(shaderProgram,"MVMatrix");			
+			gl.uniformMatrix4fv(UniformMVMatrix,false,mvMatrix);				
+			
+			
+			pMatrix=mat4.create();
+			mat4.perspective(45,canvas.width/canvas.height,0.1,100.0,pMatrix);	
+			UniformPMatrix=gl.getUniformLocation(shaderProgram,"PMatrix");
+			gl.uniformMatrix4fv(UniformPMatrix,false,pMatrix);
+			
+			
+			
+				
+			
+			//-----------------------
+			
+			
+			
+		  attribute_vertexPosition=gl.getAttribLocation(shaderProgram,"vertexPosition");
+	 		gl.enableVertexAttribArray(attribute_vertexPosition);
+						
+	     attribute_vertexColor=gl.getAttribLocation(shaderProgram,"vertexColor");
+      gl.enableVertexAttribArray(attribute_vertexColor);
+       
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			cubeVertexPositionBuffer=gl.createBuffer();			
+			gl.bindBuffer(gl.ARRAY_BUFFER,cubeVertexPositionBuffer);		
+			vertices = [
+            // Front face
+            -1.0, -1.0,  1.0,
+             1.0, -1.0,  1.0,
+             1.0,  1.0,  1.0,
+            -1.0,  1.0,  1.0,
+
+            // Back face
+            -1.0, -1.0, -1.0,
+            -1.0,  1.0, -1.0,
+             1.0,  1.0, -1.0,
+             1.0, -1.0, -1.0,
+
+            // Top face
+            -1.0,  1.0, -1.0,
+            -1.0,  1.0,  1.0,
+             1.0,  1.0,  1.0,
+             1.0,  1.0, -1.0,
+
+            // Bottom face
+            -1.0, -1.0, -1.0,
+             1.0, -1.0, -1.0,
+             1.0, -1.0,  1.0,
+            -1.0, -1.0,  1.0,
+
+            // Right face
+             1.0, -1.0, -1.0,
+             1.0,  1.0, -1.0,
+             1.0,  1.0,  1.0,
+             1.0, -1.0,  1.0,
+
+            // Left face
+            -1.0, -1.0, -1.0,
+            -1.0, -1.0,  1.0,
+            -1.0,  1.0,  1.0,
+            -1.0,  1.0, -1.0,
+        ];
+        gl.bufferData(gl.ARRAY_BUFFER,new Float32Array(vertices),gl.STATIC_DRAW);
+        
+    
+  
+  
+  
+         cubeVertexColorBuffer=gl.createBuffer();    
+        gl.bindBuffer(gl.ARRAY_BUFFER, cubeVertexColorBuffer);
+        colors = [
+            [1.0, 0.0, 0.0, 1.0], // Front face
+            [1.0, 1.0, 0.0, 1.0], // Back face
+            [0.0, 1.0, 0.0, 1.0], // Top face
+            [1.0, 0.5, 0.5, 1.0], // Bottom face
+            [1.0, 0.0, 1.0, 1.0], // Right face
+            [0.0, 0.0, 1.0, 1.0]  // Left face
+        ];     
+         var unpackedColors = [];
+        for (var i in colors) {
+            var color = colors[i];
+            for (var j=0; j < 4; j++) {
+                unpackedColors = unpackedColors.concat(color);
+            }
+        }
+       gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(unpackedColors), gl.STATIC_DRAW);  
+       
+     
+  
+  
+  
+  
+  
+  
+  
+       
+       cubeVertexIndexBuffer = gl.createBuffer();
+        gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, cubeVertexIndexBuffer);
+        var cubeVertexIndices = [
+            0, 1, 2,      0, 2, 3,    // Front face
+            4, 5, 6,      4, 6, 7,    // Back face
+            8, 9, 10,     8, 10, 11,  // Top face
+            12, 13, 14,   12, 14, 15, // Bottom face
+            16, 17, 18,   16, 18, 19, // Right face
+            20, 21, 22,   20, 22, 23  // Left face
+        ];
+        gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(cubeVertexIndices), gl.STATIC_DRAW);
+
+ 
+
+   
+       
+       
+       
+
+
+
+
+
+
+       
+       
+    
+        gl.clearColor(0.5, 0.0, 1.0, 1.0);
+        gl.enable(gl.DEPTH_TEST);
+        gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+
+	    	gl.bindBuffer(gl.ARRAY_BUFFER,cubeVertexPositionBuffer);    
+            gl.vertexAttribPointer(attribute_vertexPosition,3,gl.FLOAT,false,0,0);
+           gl.bindBuffer(gl.ARRAY_BUFFER, cubeVertexColorBuffer);
+           gl.vertexAttribPointer(attribute_vertexColor,4,gl.FLOAT,false,0,0);
+           gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, cubeVertexIndexBuffer);
+        	 gl.drawElements(gl.TRIANGLES,36,gl.UNSIGNED_SHORT,0);
+ 
+ tick();
+
+     
+   
+     
+     
+     
+     
+     }   
+     
+   
+    window.requestAnimFrame = (function(){
+  return  window.requestAnimationFrame || 
+          window.webkitRequestAnimationFrame || 
+          window.mozRequestAnimationFrame || 
+          window.oRequestAnimationFrame || 
+          window.msRequestAnimationFrame || 
+          function(callback, element){
+            window.setTimeout(callback, 1000 / 60);
+          };
+})(); 
+     
+     
+     
+     
+     function render() {
+ 
+ 
+   timeNow = new Date().getTime();
+if (lastTime!=0){
+	
+	elapsed=timeNow-lastTime;
+	CubeRot-=(75*elapsed)/800;
+ 
+}
+ lastTime=timeNow;
+ 
+   
+ 	 mvMatrix=mat4.create();		
+			mat4.identity(mvMatrix);	
+			mat4.translate(mvMatrix,[0.0,0.0,-8.0]);	
+	mat4.rotate(mvMatrix,CubeRot*Math.PI/180,[1,1,1]);
+			 		gl.uniformMatrix4fv(UniformPMatrix,false,pMatrix);		
+			gl.uniformMatrix4fv(UniformMVMatrix,false,mvMatrix);				
+		   gl.clearColor(0.5, 0.0, 1.0, 1.0);
+        gl.enable(gl.DEPTH_TEST);
+        gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+			gl.bindBuffer(gl.ARRAY_BUFFER,cubeVertexPositionBuffer);             
+           gl.bindBuffer(gl.ARRAY_BUFFER, cubeVertexColorBuffer);         
+           gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, cubeVertexIndexBuffer);
+        	 gl.drawElements(gl.TRIANGLES,36,gl.UNSIGNED_SHORT,0);	
+     
+ 
+}
+     
+     
+     
+     
+     function tick() {
+     	      	
+   	window.requestAnimFrame(tick);
+     render();    	
+     }
+     
+
+         
+          
+         
+       function handleDragStart(event) {
+               var style = window.getComputedStyle(event.target, null);
+               event.dataTransfer.setData("text/plain",
+               (parseInt(style.getPropertyValue("left"),10)
+                - event.clientX) + ',' + (parseInt(style.getPropertyValue("top"),10) 
+                - event.clientY));
+           
+          // canvas.style.opacity=".3";
+               } 
+
+           
+            
+            function HANDLEDragOver(event){
+                   event.preventDefault();
+          return false;
+              }
+              
+            
+            function HANDLEDrop(event){
+                  
+                var offset = event.dataTransfer.getData("text/plain").split(',');
+                
+                  canvas.style.left = (event.clientX + parseInt(offset[0],10)) + 'px';
+                  canvas.style.top = (event.clientY + parseInt(offset[1],10)) + 'px';
+                  
+                     var tx= (event.clientX + parseInt(offset[0],10)) + 'px';
+                  var ty = (event.clientY + parseInt(offset[1],10)) + 'px';
+               
+                  
+                  
+                 event.preventDefault();
+                return false; 
+              }
+              
+           function handleDragEnd(event){
+               
+                 var offset = event.dataTransfer.getData("text/plain").split(',');
+                
+                 var tx= (event.clientX + parseInt(offset[0],10)) + 'px';
+                  var ty = (event.clientY + parseInt(offset[1],10)) + 'px';
+              canvas.style.opacity= "1";
+           }
+         
+         
+  
+    
+	
+
+
+</script>
+	</head>
+	<body onload="RunThis();">
+		
+		<canvas id="WebGL" width = "100" height = "100"  draggable="true">
+			
+		</canvas>
+		
+	 
+	</body>
+	
+</html>
